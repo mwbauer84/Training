@@ -29,7 +29,7 @@ function releaseAwake(){ try{ wake&&wake.release(); wake=null; }catch(e){} }
 function secsOf(reps){ const m=/(\d+)\s*s\b/.exec(reps||""); return m?+m[1]:0; }
 function firstInt(reps){ const m=/(\d+)/.exec(reps||""); return m?+m[1]:0; }
 function fmt(s){ s=Math.max(0,Math.ceil(s)); const m=Math.floor(s/60), r=s%60; return m+":"+String(r).padStart(2,"0"); }
-function yt(id){ return "https://www.youtube-nocookie.com/embed/"+id+"?autoplay=1&mute=1&loop=1&playlist="+id+"&controls=0&modestbranding=1&rel=0&playsinline=1"; }
+function yt(id){ return "https://www.youtube.com/embed/"+id+"?autoplay=1&mute=1&loop=1&playlist="+id+"&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=0&origin="+encodeURIComponent(location.origin); }
 function ytWatch(id){ return "https://www.youtube.com/watch?v="+id; }
 function dayItems(b,day){ const B=BLOCKS[b]; if(day==="C"){ let c=B.C; if(c==="same5") c=BLOCKS[4].C; return c; } return B[day]; }
 
@@ -274,7 +274,7 @@ function renderPlayer(){
   if(vid!==run.lastVid){
     run.lastVid=vid;
     if(vid){
-      vw.innerHTML=`<div class="vbox"><iframe src="${yt(vid)}" title="${esc(E.n)} demo" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen frameborder="0" tabindex="-1"></iframe></div><a class="vlink" href="${ytWatch(vid)}" target="_blank" rel="noopener" tabindex="-1">Video not showing? Open it on YouTube</a>`;
+      vw.innerHTML=`<div class="vbox"><iframe src="${yt(vid)}" title="${esc(E.n)} demo" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen frameborder="0" tabindex="-1"></iframe></div><a class="vlink" href="${ytWatch(vid)}" target="_blank" rel="noopener" tabindex="-1">Video not showing? Open it on YouTube</a>`;
     } else {
       vw.innerHTML=`<div class="novid"><div>${E?esc(E.n):""}</div><small>No video for this one — follow the cues</small></div>`;
     }
