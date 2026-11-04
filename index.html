@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bauer Training</title>
+<meta name="theme-color" content="#0d1b2a">
+<style>
+:root{--bg:#0d1b2a;--panel:#14263b;--panel2:#1c3450;--ink:#f4f7fb;--mut:#9fb3c8;--acc:#ffb400;--go:#2ec27e;--rest:#3a8dde;--bad:#e05252;--r:14px;
+  --fs:clamp(14px,1.55vw,30px);}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:var(--fs);}
+button{font:inherit;color:var(--ink);background:var(--panel2);border:3px solid transparent;border-radius:var(--r);padding:.55em 1em;cursor:pointer;min-height:2.6em}
+button:disabled{opacity:.35}
+button:focus,button:hover,.f{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px rgba(255,180,0,.35)}
+input{font:inherit;padding:.4em .6em;border-radius:10px;border:2px solid var(--panel2);background:#0a1522;color:var(--ink)}
+input:focus{border-color:var(--acc);outline:none}
+#app{padding:1.2em 1.6em;max-width:1800px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:1em;margin-bottom:.8em}
+.top h1{margin:0;font-size:1.8em;letter-spacing:.02em}
+.top nav{display:flex;gap:.6em}
+.blocks{display:grid;grid-template-columns:repeat(6,1fr);gap:.6em}
+.card{text-align:left;padding:.7em .8em;background:var(--panel)}
+.card.on{background:var(--panel2);border-color:var(--acc)}
+.bn{color:var(--acc);font-weight:700;font-size:.8em;text-transform:uppercase}
+.bt{font-size:1.1em;font-weight:700;margin:.15em 0}
+.bd{color:var(--mut);font-size:.75em}
+.pick{margin-top:1em;background:var(--panel);border-radius:var(--r);padding:1em 1.2em}
+.goal{color:var(--mut);margin-bottom:.8em}.goal b{color:var(--ink)}
+.days{display:flex;gap:.6em;flex-wrap:wrap}
+.day.on{background:var(--acc);color:#111;font-weight:700}
+.preview{columns:2;column-gap:2em;margin:.9em 0;padding-left:1.4em;font-size:.85em}
+.preview li{break-inside:avoid;margin:.25em 0}
+.preview .sl{color:var(--acc);font-weight:700;margin-right:.3em}
+.preview em{color:var(--mut)}
+.preview .ds{display:block;color:var(--mut);font-size:.85em}
+.start{background:var(--go);color:#062;font-weight:800;font-size:1.25em;padding:.6em 1.4em;color:#032}
+.hint{color:var(--mut);font-size:.75em;margin:.7em 0 0}
+.danger{background:#3a1c1c;color:#f6b3b3;margin-top:1em}
+/* player */
+.player{display:flex;flex-direction:column;height:calc(100vh - 2.4em);gap:.6em}
+.pbar{height:.45em;background:var(--panel);border-radius:9px;overflow:hidden}
+.pbar>div{height:100%;background:var(--acc);transition:width .4s}
+.ptop{display:flex;justify-content:space-between;color:var(--mut);font-size:.9em}
+.seg{color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.pmain{flex:1;display:grid;grid-template-columns:1.45fr 1fr;gap:1.2em;min-height:0}
+.vwrap{display:flex;flex-direction:column;gap:.3em;min-height:0}
+.vbox{position:relative;flex:1;background:#000;border-radius:var(--r);overflow:hidden;min-height:0}
+.vbox iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vlink{color:var(--mut);font-size:.7em;text-align:right}
+.novid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--panel);border-radius:var(--r);font-size:1.4em;text-align:center;padding:1em}
+.novid small{color:var(--mut);font-size:.55em;margin-top:.5em}
+.pinfo{background:var(--panel);border-radius:var(--r);padding:1em 1.2em;overflow:auto}
+.ex{margin:0;font-size:1.9em;line-height:1.1}
+.sub{color:var(--mut);margin-top:.3em}
+.setl{margin-top:.5em;font-weight:700;color:var(--acc);font-size:1.2em}
+.clock{font-size:4.2em;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;margin:.15em 0;color:var(--go)}
+.clock.rest{color:var(--rest)}
+.clock.reps{font-size:1.4em;color:var(--mut);font-weight:600;margin:.6em 0}
+.isrest .pinfo{box-shadow:inset 0 0 0 4px var(--rest)}
+.doses{display:grid;grid-template-columns:1fr 1fr;gap:.5em;margin:.4em 0}
+.dose{background:var(--panel2);border-radius:12px;padding:.5em .7em}
+.dose span{display:block;color:var(--mut);font-size:.8em}
+.dose b{display:block;font-size:1.5em}
+.dose small{color:var(--mut)}
+.dose.x{opacity:.45}
+.cues{margin:.6em 0 0;padding-left:1.2em;font-size:1em}
+.cues li{margin:.25em 0}
+.ctrl{display:flex;gap:.6em;justify-content:center}
+.ctrl .big{background:var(--go);color:#032;font-weight:800;min-width:9em;font-size:1.15em}
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9}
+.mbox{background:var(--panel);border-radius:18px;padding:1.2em 1.5em;min-width:min(90vw,32em);max-width:94vw}
+.mbox h2{margin:.1em 0 .6em}
+.lrow{display:flex;align-items:center;gap:.8em;margin:.5em 0;flex-wrap:wrap}
+.who{min-width:7em;font-weight:700}.who small{display:block;color:var(--mut);font-weight:400}
+.fld{display:flex;align-items:center;gap:.4em;padding:.3em .5em;border-radius:12px;border:3px solid transparent;background:var(--panel2)}
+.fld span{color:var(--mut);font-size:.8em}
+.fld b{min-width:3.4em;text-align:center;font-size:1.3em}
+.fld button{min-height:2em;padding:.1em .7em;font-size:1.2em}
+.mact{display:flex;gap:.6em;margin-top:.8em}.mact.col{flex-direction:column}
+#lsave,#resume{background:var(--go);color:#032;font-weight:800}
+/* history & settings */
+.hist{display:flex;flex-direction:column;gap:.8em}
+.sess{background:var(--panel);border-radius:var(--r);padding:.8em 1em}
+.sess.hl{box-shadow:0 0 0 3px var(--go)}
+.sess h3{margin:0 0 .4em;font-size:1.05em}
+.sess table{border-collapse:collapse;width:100%;font-size:.85em}
+.sess td,.sess th{text-align:left;padding:.25em .5em;border-bottom:1px solid var(--panel2)}
+.set{display:flex;flex-direction:column;gap:.8em;max-width:34em}
+.set label{display:flex;justify-content:space-between;align-items:center;gap:1em}
+/* tablet / portrait */
+@media (max-width:900px), (orientation:portrait){
+  :root{--fs:16px}
+  #app{padding:.8em}
+  .blocks{grid-template-columns:repeat(3,1fr)}
+  .preview{columns:1}
+  .player{height:auto;min-height:calc(100vh - 1.6em)}
+  .pmain{grid-template-columns:1fr}
+  .vbox{aspect-ratio:16/9;flex:none}
+  .ctrl{flex-wrap:wrap;position:sticky;bottom:0;background:var(--bg);padding:.4em 0}
+  .ctrl button{flex:1 1 30%}
+  .clock{font-size:3.2em}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
