@@ -280,11 +280,13 @@ function renderPlayer(){
     if(run.demo){ try{ run.demo.stop(); }catch(e){} run.demo=null; }
     const D = exId && window.DEMOS && window.DEMOS[exId];
     const tut = vid ? `<a class="vlink" href="${ytWatch(vid)}" target="_blank" rel="noopener" tabindex="-1">Full tutorial on YouTube</a>` : "";
+    const Wy = (typeof WHY!=="undefined" && exId) ? WHY[exId] : null;
+    const why = Wy ? `<div class="why"><div><b>Works:</b> ${esc(Wy.t)}</div><div><b>In the game:</b> ${esc(Wy.s)}</div></div>` : "";
     if(D){
-      vw.innerHTML=`<div class="vbox demo" id="demobox"></div>${tut}`;
+      vw.innerHTML=`<div class="vbox demo" id="demobox"></div>${why}${tut}`;
       run.demo = DemoPlayer($("#demobox"), D);
     } else {
-      vw.innerHTML=`<div class="novid"><div>${E?esc(E.n):""}</div><small>Animated demo coming soon</small></div>${tut}`;
+      vw.innerHTML=`<div class="novid"><div>${E?esc(E.n):""}</div><small>Animated demo coming soon</small></div>${why}${tut}`;
     }
   }
   $("#primary").focus();
