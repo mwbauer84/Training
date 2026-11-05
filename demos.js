@@ -74,17 +74,54 @@ Object.assign(window.DEMOS,{
     cues:["Relaxed shoulders","Tall posture","Land under the hips","Easy pace"], k:runCycle(300,6,4).map(f=>[f[0],f[1],"Easy jog"])},
   buildup:{sub:"side view · 70% then 90% · smooth, relaxed", scroll:0.22,
     cues:["Build smoothly — 70% then 90%","Tall, slight lean","Relaxed face and hands"], k:runCycle(190,10,6).map(f=>[f[0],f[1],"Build-up sprint"])},
-  shuffle:{view:"front", sub:"front view · low and wide · feet never click",
-    cues:["Hips back, chest up","Push off the trail leg","Feet stay apart","Stay low — don't pop up"], k:[
-    [260,{x:140, t:0, N:[24,6,90], F:[-24,-6,-90], NA:[30,70], FA:[-30,-70]}, "Wide, athletic stance"],
-    [220,{x:175, t:0, N:[30,10,90], F:[-12,-4,-90], NA:[30,70], FA:[-30,-70], air:3}, "Push off the trail leg"],
-    [220,{x:205, t:0, N:[22,6,90], F:[-22,-6,-90], NA:[30,70], FA:[-30,-70]}, "Feet stay apart"],
-    [220,{x:240, t:0, N:[30,10,90], F:[-12,-4,-90], NA:[30,70], FA:[-30,-70], air:3}, "Push off the trail leg"],
-    [260,{x:265, t:0, N:[24,6,90], F:[-24,-6,-90], NA:[30,70], FA:[-30,-70]}, "Touch the line"],
-    [220,{x:230, t:0, F:[-30,-10,-90], N:[12,4,90], NA:[30,70], FA:[-30,-70], air:3}, "Push back the other way"],
-    [220,{x:200, t:0, N:[22,6,90], F:[-22,-6,-90], NA:[30,70], FA:[-30,-70]}, "Feet stay apart"],
-    [220,{x:165, t:0, F:[-30,-10,-90], N:[12,4,90], NA:[30,70], FA:[-30,-70], air:3}, "Push off the trail leg"]
-  ]},
+  shuffle:(function(){
+    // Foot-driven lateral shuffle: lead foot steps out first, trail leg pushes and glides in (never clicks),
+    // hips travel smoothly and low. 3 steps right, plant, 3 steps left, plant.
+    const S=650, T=900, NARROW=28, STRIDE=44, OUT=60, X0=114;
+    const sm=u=>u<=0?0:u>=1?1:u*u*(3-2*u);
+    const win=(u,a,b)=>sm((u-a)/(b-a));
+    const arc=(u,a,b,h)=>(u>a&&u<b)?h*Math.sin(Math.PI*(u-a)/(b-a)):0;
+    const segs=[]; let H=X0;
+    for(let i=0;i<3;i++){ segs.push({k:"step",d:1,H,ms:S}); H+=STRIDE; }
+    segs.push({k:"turn",d:1,H,ms:T});
+    for(let i=0;i<3;i++){ segs.push({k:"step",d:-1,H,ms:S}); H-=STRIDE; }
+    segs.push({k:"turn",d:-1,H,ms:T});
+    const period=segs.reduce((s,x)=>s+x.ms,0);
+    function gen(t){
+      let acc=0, sg=segs[0]; for(const x of segs){ if(t<acc+x.ms){ sg=x; break; } acc+=x.ms; }
+      const u=(t-acc)/sg.ms, d=sg.d, H=sg.H;
+      let hip, lead, trail, lLift=0, tLift=0, lTilt=0, tTilt=0, hy, cap, guide=[], hl=[];
+      if(sg.k==="step"){
+        hip=H+d*STRIDE*u;                                   // hips glide at a steady speed
+        lead=H+d*NARROW+d*STRIDE*win(u,0,0.4); lLift=arc(u,0,0.4,7);       // lead foot reaches out first
+        trail=H-d*NARROW+d*STRIDE*win(u,0.5,0.95); tLift=arc(u,0.5,0.95,4); // trail foot glides in
+        if(u>0.3&&u<0.55) tTilt=-25*Math.sin(Math.PI*(u-0.3)/0.25);         // heel peels up: push-off
+        if(u<0.4) lTilt=12;
+        hy=61-2.5*Math.cos(2*Math.PI*(u-0.45));
+        if(u<0.32){ cap="Lead foot steps out first"; hl=[d>0?"ankle":"fankle"]; }
+        else if(u<0.58){ cap="Trail leg pushes off"; guide=[d>0?"pushF":"pushN"]; hl=[d>0?"fankle":"ankle"]; }
+        else cap="Trail foot slides in — never click";
+      } else {
+        // plant: outside foot steps wide, hips sink and stop, then push back the other way
+        hip=H+d*7*Math.sin(Math.PI*Math.min(u/0.85,1));
+        lead=H+d*NARROW+d*(OUT-NARROW)*win(u,0,0.3)-d*(OUT-NARROW)*win(u,0.55,1); lLift=arc(u,0,0.3,6)+arc(u,0.55,1,3);
+        trail=H-d*NARROW;
+        if(u>0.3&&u<0.6) lTilt=-20*Math.sin(Math.PI*(u-0.3)/0.3);
+        hy=63.4-6*Math.sin(Math.PI*Math.min(u/0.7,1));
+        if(u<0.3) cap="Plant the outside foot";
+        else if(u<0.62){ cap="Push back the other way"; guide=[d>0?"pushN":"pushF"]; hl=[d>0?"ankle":"fankle"]; }
+        else cap="Stay low";
+      }
+      const sway=(lead+trail)/2-hip;                       // shoulders stay level, tiny lean toward travel
+      const swing=Math.sin(2*Math.PI*u)*4;
+      const P={x:hip, t:sway*0.05, hy, air:0,
+        feet: d>0 ? {N:[lead,lLift,lTilt],F:[trail,tLift,tTilt]} : {F:[lead,lLift,lTilt],N:[trail,tLift,tTilt]},
+        NA:[28+swing,64], FA:[-28-swing,-64], guide, hl};
+      return {P,cap};
+    }
+    return {view:"front", sub:"front view · low and wide · feet never click", period, gen,
+      cues:["Lead foot steps out first","Trail leg pushes off","Feet never click together","Stay low — hips level"]};
+  })(),
   carioca:{view:"front", sub:"front view · hips rotate, shoulders square",
     cues:["Trail leg crosses in front…","…then behind","Hips turn, shoulders stay square","Quick, light feet"], k:[
     [240,{x:150, t:0, N:[8,4,90], F:[-8,-4,-90], NA:[30,60], FA:[-30,-60]}, "Start"],

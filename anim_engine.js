@@ -41,6 +41,19 @@ function solve(P,view){
   const leg=(h,A)=>{ const k=seg(h,A[0],L.thigh), an=seg(k,A[1],L.shin), toe=seg(an,A[2],flen); return {h,k,an,toe}; };
   const arm=(s,A)=>{ const e=seg(s,A[0],L.upper), w=seg(e,A[1],L.fore); return {s,e,w}; };
   const J={hip:hipC,sh:shC,head,hN,hF,sN,sF,N:leg(hN,P.N),F:leg(hF,P.F),NA:arm(sN,P.NA),FA:arm(sF,P.FA)};
+  // Foot-driven legs (front view): P.feet={N:[x,lift,toeTilt],F:[...]}, P.hy = hip height above ground.
+  if(P.feet){
+    const dy=(GROUND-P.hy-P.air)-hipC[1]; const mv=p=>{p[1]+=dy;};
+    [J.hip,J.sh,J.head,J.hN,J.hF,J.sN,J.sF].forEach(mv); ["NA","FA"].forEach(s=>{mv(J[s].e);mv(J[s].w);});
+    const a1=L.thigh*0.84, a2=L.shin*0.96;
+    [["N",1],["F",-1]].forEach(([s,side])=>{ const f=P.feet[s], h=J["h"+s]; const an=[f[0],GROUND-P.g-f[1]];
+      const dx=an[0]-h[0], dyy=an[1]-h[1]; let d=Math.min(Math.hypot(dx,dyy),a1+a2-0.5);
+      const base=Math.atan2(dyy,dx), a=Math.acos(Math.max(-1,Math.min(1,(a1*a1+d*d-a2*a2)/(2*a1*d))));
+      const k1=[h[0]+Math.cos(base+a)*a1,h[1]+Math.sin(base+a)*a1], k2=[h[0]+Math.cos(base-a)*a1,h[1]+Math.sin(base-a)*a1];
+      const k=side>0?(k1[0]>k2[0]?k1:k2):(k1[0]<k2[0]?k1:k2);
+      J[s]={h,k,an,toe:seg(an,side*90+(f[2]||0)*side,flen)}; });
+    return J;
+  }
   // ground snap
   const named={Nan:J.N.an,Ntoe:J.N.toe,Fan:J.F.an,Ftoe:J.F.toe,Nk:J.N.k,Fk:J.F.k,Nw:J.NA.w,Fw:J.FA.w,hip:hipC,sh:shC,Ne:J.NA.e,Fe:J.FA.e,head:[head[0],head[1]+L.head]};
   let keys=P.snap||Object.keys(named);
@@ -55,7 +68,7 @@ function solve(P,view){
   return J;
 }
 function shiftJ(J,d){ const s=p=>{p[0]+=d;}; [J.head,J.hip,J.sh,J.hN,J.hF,J.sN,J.sF].forEach(s); ["N","F"].forEach(k=>{s(J[k].k);s(J[k].an);s(J[k].toe);}); ["NA","FA"].forEach(k=>{s(J[k].e);s(J[k].w);}); }
-function pick(J,name){ const m={heel:J.N.an,knee:J.N.k,fknee:J.F.k,ankle:J.N.an,hip:J.hip,sh:J.sh,hand:J.NA.w,fhand:J.FA.w,elbow:J.NA.e,head:J.head,toe:J.N.toe,ftoe:J.F.toe}; return m[name]; }
+function pick(J,name){ const m={heel:J.N.an,knee:J.N.k,fknee:J.F.k,ankle:J.N.an,hip:J.hip,sh:J.sh,hand:J.NA.w,fhand:J.FA.w,elbow:J.NA.e,head:J.head,toe:J.N.toe,ftoe:J.F.toe,fankle:J.F.an}; return m[name]; }
 function el(tag,attrs,parent){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e; }
 const txt=(parent,x,y,s,fill,size,anchor)=>{ const t=el("text",{x,y,fill:fill||"#2ec27e","font-size":size||12,"font-weight":700,"font-family":"system-ui,Arial","text-anchor":anchor||"start"},parent); t.textContent=s; return t; };
 
@@ -72,7 +85,7 @@ function DemoPlayer(container, def){
 
   // Slow movements (avg phase >= 700 ms): show the live phase label, held at least 1.2 s so it can be read.
   // Fast cyclic movements: rotate the key cues every 3.5 s. Slow-mo always shows live phase labels.
-  const avgPhase = def.k ? total/def.k.length : 9999;
+  const avgPhase = def.k ? total/def.k.length : (def.gen ? 0 : 9999);
   const synced = !def.cues || avgPhase>=700;
   let capSince=0;
   function caption(now,cap){
@@ -110,12 +123,13 @@ function DemoPlayer(container, def){
   (def.blocks||[]).forEach(b=>el("rect",{x:b.x,y:GROUND-b.h,width:b.w,height:b.h,rx:3,fill:"#3b5d80",stroke:"#557aa0","stroke-width":2},back));
   if(def.door){ el("rect",{x:def.door,y:70,width:10,height:GROUND-70,fill:"#2a4560"},back); }
 
-  const frames=def.k.map(([ms,p,cap])=>({ms,p:Object.assign({},BASE,def.base||{},p),cap}));
+  const frames=(def.k||[[1000,{}]]).map(([ms,p,cap])=>({ms,p:Object.assign({},BASE,def.base||{},p),cap}));
   const anchorX = def.anchor==="feet" ? solve(frames[0].p,view).N.an[0] : null;
   if(def.wall!=null){ let wx=def.wall; if(wx==="auto"){ const J0=solve(frames[0].p,view); if(anchorX!==null) shiftJ(J0,anchorX-J0.N.an[0]); wx=Math.max(J0.NA.w[0],J0.FA.w[0])+3; }
     el("rect",{x:wx,y:60,width:14,height:GROUND-60,fill:"#2a4560"},back); }
 
-  function poseAt(t){ let acc=0;
+  function poseAt(t){ if(def.gen){ const r=def.gen(t); return {P:Object.assign({},BASE,def.base||{},r.P),cap:r.cap}; }
+    let acc=0;
     for(let i=0;i<frames.length;i++){ const f=frames[i], n=frames[(i+1)%frames.length];
       if(t<acc+f.ms){ const u=(t-acc)/f.ms; const P=f.p.cut?Object.assign({},f.p):mix(f.p,n.p,ease(u)); const nr=u<0.5?f:n; P.hl=nr.p.hl; P.guide=nr.p.guide; return {P,cap:nr.cap!==undefined?nr.cap:null}; }
       acc+=f.ms; }
@@ -162,6 +176,10 @@ function DemoPlayer(container, def){
       if(g==="backflat"){ el("line",Object.assign({x1:J.hip[0]-20,y1:GROUND-4,x2:J.sh[0]+20,y2:GROUND-4,stroke:"#2ec27e","stroke-width":4}),hlG); txt(hlG,(J.hip[0]+J.sh[0])/2,GROUND-14,"low back pressed down","#2ec27e",12,"middle"); }
       if(g==="vertical"){ el("line",Object.assign({x1:J.hip[0],y1:J.hip[1]+40,x2:J.hip[0],y2:J.head[1]-14},dash),hlG); txt(hlG,J.hip[0]+8,J.head[1]-16,"torso tall"); }
       if(g==="angle45"){ const a=J.N.an[0]<J.F.an[0]?J.N.an:J.F.an; el("line",Object.assign({x1:a[0],y1:a[1],x2:J.head[0],y2:J.head[1]},dash),hlG); txt(hlG,J.hip[0]-30,J.hip[1]+22,"45° line","#2ec27e",12,"end"); }
+      if(g==="pushN"||g==="pushF"){ const f=g==="pushN"?J.N:J.F, dirx=f.an[0]<J.hip[0]?1:-1, y=GROUND-16, x0=f.an[0]+dirx*14, x1=f.an[0]+dirx*40;
+        el("line",{x1:x0,y1:y,x2:x1,y2:y,stroke:"#ffb400","stroke-width":3,"stroke-linecap":"round"},hlG);
+        el("polyline",{points:`${x1-dirx*7},${y-6} ${x1},${y} ${x1-dirx*7},${y+6}`,stroke:"#ffb400","stroke-width":3,fill:"none","stroke-linecap":"round"},hlG);
+        txt(hlG,(x0+x1)/2,y-9,"push","#ffb400",12,"middle"); }
       if(g==="elbow90"){ txt(hlG,J.NA.e[0]+12,J.NA.e[1]+4,"90°"); }
     });
     (P.hl||def.hl||[]).forEach(name=>{ const p=pick(J,name); if(p) el("circle",{cx:p[0],cy:p[1],r:14,fill:"none",stroke:"#ffb400","stroke-width":3,opacity:.85},hlG); });
