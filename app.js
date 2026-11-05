@@ -271,12 +271,17 @@ function renderPlayer(){
   $("#primary").textContent=primaryLabel(st);
   $("#pause").textContent=run.paused?"▶ Resume":"⏸ Pause";
   const vw=$("#vwrap");
-  if(vid!==run.lastVid){
-    run.lastVid=vid;
-    if(vid){
-      vw.innerHTML=`<div class="vbox"><iframe src="${yt(vid)}" title="${esc(E.n)} demo" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen frameborder="0" tabindex="-1"></iframe></div><a class="vlink" href="${ytWatch(vid)}" target="_blank" rel="noopener" tabindex="-1">Video not showing? Open it on YouTube</a>`;
+  const exId = showEx || null;
+  if(exId!==run.lastVid){
+    run.lastVid=exId;
+    if(run.demo){ try{ run.demo.stop(); }catch(e){} run.demo=null; }
+    const D = exId && window.DEMOS && window.DEMOS[exId];
+    const tut = vid ? `<a class="vlink" href="${ytWatch(vid)}" target="_blank" rel="noopener" tabindex="-1">Full tutorial on YouTube</a>` : "";
+    if(D){
+      vw.innerHTML=`<div class="vbox demo" id="demobox"></div>${tut}`;
+      run.demo = DemoPlayer($("#demobox"), D);
     } else {
-      vw.innerHTML=`<div class="novid"><div>${E?esc(E.n):""}</div><small>No video for this one — follow the cues</small></div>`;
+      vw.innerHTML=`<div class="novid"><div>${E?esc(E.n):""}</div><small>Animated demo coming soon — follow the cues</small></div>${tut}`;
     }
   }
   $("#primary").focus();
@@ -293,7 +298,7 @@ function confirmExit(){
   $("#resume").focus();
 }
 function finish(early){
-  clearInterval(run.timer); run.rec.done=!early; save(); releaseAwake();
+  clearInterval(run.timer); if(run.demo){ try{run.demo.stop();}catch(e){} } run.rec.done=!early; save(); releaseAwake();
   const rec=run.rec; run=null; say(early?"Workout saved.":"Workout complete. Nice work.");
   view="history"; render(); const el=$("[data-sid='"+rec.id+"']"); if(el) el.classList.add("hl");
 }

@@ -3,6 +3,7 @@ const EX = {
   // Warm-up / cool-down
   jog:{n:"Easy jog",v:null,c:["Relaxed pace, down and back","Loosen arms and shoulders"]},
   askip:{n:"A-skip",v:"rWZdDUGFjoI",c:["Tall, toe up, punch the ground","Knee to hip height","Opposite arm cheek to hip pocket"]},
+  bskip:{n:"B-skip",v:"GQg9L28bi1g",c:["Knee up, then unfold the lower leg","Claw down and back","Ball of foot lands under the hip"]},
   shuffle:{n:"Lateral shuffle",v:"mziPKITnPeQ",c:["Hips back, chest up, feet wide","Push off the trail leg","Heels never click together"]},
   carioca:{n:"Carioca",v:"R3__Q_SulyM",c:["Trail leg crosses in front, then behind","Hips rotate, shoulders stay square"]},
   lungerot:{n:"Walking lunge + reach & rotation",v:"HCFUgYtIXlE",c:["Back knee hovers 1 in. off the ground","Reach overhead, rotate toward front leg"]},
