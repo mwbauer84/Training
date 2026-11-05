@@ -44,12 +44,20 @@ input:focus{border-color:var(--acc);outline:none}
 .pbar>div{height:100%;background:var(--acc);transition:width .4s}
 .ptop{display:flex;justify-content:space-between;color:var(--mut);font-size:.9em}
 .seg{color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-.pmain{flex:1;display:grid;grid-template-columns:1.45fr 1fr;gap:1.2em;min-height:0}
+.pmain{flex:1;display:grid;grid-template-columns:1.25fr 1fr;gap:1.2em;min-height:0}
 .vwrap{display:flex;flex-direction:column;gap:.3em;min-height:0}
 .vbox{position:relative;flex:1;background:#000;border-radius:var(--r);overflow:hidden;min-height:0}
 .vbox iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .vbox.demo{background:#0b1622}
 .vbox.demo svg{position:absolute;inset:0}
+.tech{display:flex;flex-direction:column;gap:.45em;margin-top:.5em;font-size:.84em}
+.tech>div.tf,.tech>div.tm{background:var(--panel2);border-radius:12px;padding:.45em .8em;border-left:5px solid var(--go)}
+.tech .tm{border-left-color:var(--bad)!important}
+.tech h4{margin:0 0 .15em;font-size:1em;color:var(--go)}
+.tech .tm h4{color:var(--bad)}
+.tech ul{margin:0;padding-left:1.1em;line-height:1.28}
+.tech li{margin:.1em 0}
+.tnext{color:var(--rest);font-weight:700}
 .vlink{color:var(--mut);font-size:.7em;text-align:right}
 .novid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--panel);border-radius:var(--r);font-size:1.4em;text-align:center;padding:1em}
 .novid small{color:var(--mut);font-size:.55em;margin-top:.5em}
@@ -57,9 +65,9 @@ input:focus{border-color:var(--acc);outline:none}
 .ex{margin:0;font-size:1.9em;line-height:1.1}
 .sub{color:var(--mut);margin-top:.3em}
 .setl{margin-top:.5em;font-weight:700;color:var(--acc);font-size:1.2em}
-.clock{font-size:4.2em;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;margin:.15em 0;color:var(--go)}
+.clock{font-size:3.4em;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;margin:.15em 0;color:var(--go)}
 .clock.rest{color:var(--rest)}
-.clock.reps{font-size:1.4em;color:var(--mut);font-weight:600;margin:.6em 0}
+.clock.reps{font-size:1.05em;color:var(--mut);font-weight:600;margin:.3em 0}
 .isrest .pinfo{box-shadow:inset 0 0 0 4px var(--rest)}
 .doses{display:grid;grid-template-columns:1fr 1fr;gap:.5em;margin:.4em 0}
 .dose{background:var(--panel2);border-radius:12px;padding:.5em .7em}
@@ -109,9 +117,10 @@ input:focus{border-color:var(--acc);outline:none}
 </head>
 <body>
 <div id="app"></div>
-<script src="anim_engine.js?v=3"></script>
-<script src="demos.js?v=3"></script>
-<script src="data.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="anim_engine.js?v=4"></script>
+<script src="demos.js?v=4"></script>
+<script src="data.js?v=4"></script>
+<script src="tech.js?v=4"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

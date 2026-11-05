@@ -235,7 +235,9 @@ function renderPlayer(){
   const sub = st.kind==="rest" ? (E?`Up next: <b>${esc(E.n)}</b>`:"") : (st.note?esc(st.note):"");
   const setLine = (st.kind==="set"||st.kind==="timedset") ? `Set ${st.set} of ${st.sets}` : (st.round?`Round ${st.round} of ${st.rounds}`:"");
   const clock = (st.sec) ? `<div id="clock" class="clock ${st.kind==="rest"?'rest':''}">${fmt(run.t)}</div>` : `<div class="clock reps">Go at your pace</div>`;
-  const cues = E? `<ul class="cues">${E.c.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>`:"";
+  const T = (typeof TECH!=="undefined" && showEx) ? TECH[showEx] : null;
+  const cues = T ? `<div class="tech"><div class="tf"><h4>✓ Good form</h4><ul>${T.f.slice(0,4).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div><div class="tm"><h4>✗ Avoid</h4><ul>${T.m.slice(0,3).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></div>`
+    : E ? `<ul class="cues">${E.c.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>` : "";
   const vid = E&&E.v ? E.v : null;
   // Build the frame once per workout so the video iframe is never detached (detaching reloads it).
   if(!$(".player",app)){
@@ -268,6 +270,7 @@ function renderPlayer(){
         ${clock}
         <div class="doses">${doseHtml}</div>
         ${cues}`;
+  fitInfo();
   $("#primary").textContent=primaryLabel(st);
   $("#pause").textContent=run.paused?"▶ Resume":"⏸ Pause";
   const vw=$("#vwrap");
@@ -281,7 +284,7 @@ function renderPlayer(){
       vw.innerHTML=`<div class="vbox demo" id="demobox"></div>${tut}`;
       run.demo = DemoPlayer($("#demobox"), D);
     } else {
-      vw.innerHTML=`<div class="novid"><div>${E?esc(E.n):""}</div><small>Animated demo coming soon — follow the cues</small></div>${tut}`;
+      vw.innerHTML=`<div class="novid"><div>${E?esc(E.n):""}</div><small>Animated demo coming soon</small></div>${tut}`;
     }
   }
   $("#primary").focus();
@@ -377,3 +380,11 @@ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==
 render();
 setTimeout(()=>focusSel("#start"),50);
 })();
+
+// Shrink the technique notes until the info panel fits without scrolling (TV has no scroll).
+function fitInfo(){
+  const box=document.getElementById("pinfo"), t=box&&box.querySelector(".tech"); if(!t) return;
+  let f=0.84; t.style.fontSize=f+"em";
+  while(box.scrollHeight>box.clientHeight+1 && f>0.6){ f-=0.03; t.style.fontSize=f.toFixed(2)+"em"; }
+}
+window.addEventListener("resize",()=>{ try{fitInfo();}catch(e){} });
